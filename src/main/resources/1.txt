@@ -1,0 +1,17 @@
+= Abcd efg
+Daniel Persson <fafa@fafa.se>
+v10
+
+Normal Paragraph
+Hoho fafa
+
+ Ad paragraph
+Hoho fafa
+
+[.lead]
+Lead Paragraph
+Hoho fafa
+
+== NySektion
+
+Faffelifaff

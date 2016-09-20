@@ -1,0 +1,236 @@
+/*
+ * Copyright (C) 2009-2013 Mathias Doenitz, Alexander Myltsev
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.parboiled2.examples
+
+import scala.annotation.tailrec
+import scala.util.{Failure, Success}
+import scala.io.StdIn
+import org.parboiled2._
+
+object Calculator2 extends App {
+  val WhiteSpaceChar = CharPredicate(" \t\f")
+
+  repl()
+
+  // @tailrec
+  def repl(): Unit = {
+
+    // once BUG https://issues.scala-lang.org/browse/SI-8167 is fixed
+    //    print("---\nEnter calculator expression > ")
+    //  Console.out.flush()
+    //    StdIn.readLine()
+    "= Abcd efg \n" +
+      "Daniel Persson <fafa@fafa.se>\n" +
+      "v10 \n" +
+      "\n" +
+      "Fafa fafa fafa\n" +
+      "Hoho fafa\n" match {
+
+      case "" =>
+      case line =>
+        print(">" + line + "<")
+        val parser = new Calculator2(line)
+       /* parser.InputLine.run() match {
+          case Success(exprAst) => println("Result: " + "eval(exprAst)" + exprAst)
+          case Failure(e: ParseError) => println("Expression is not valid: " + parser.formatError(e))
+          case Failure(e) => println("Unexpected error during parsing run: " + e)
+        }*/
+      //repl()
+    }
+  }
+
+  /*
+  def eval(expr: Expr): String =
+      expr match {
+        case Document(a)             => eval(a)
+        case Option[Header](b)   => "b"
+        case Header(a)       => eval(a)
+        case Phrase(a)   => a
+        case Word(a) => a
+        case Any(a) => "Any"
+      }
+  def eval(expr: Unit): String =
+      "Fafa"
+  */
+
+  // our abstract syntax tree model
+  sealed trait Expr
+
+  case class AFile(doc: ADocument) extends Expr
+
+  case class ADocument(header: AHeader) extends Expr
+
+  case class AHeader(s: ADocTitle, elefant: Option[AAuthorVersion]) extends Expr
+
+  case class APhrase(value: Seq[AWord]) extends Expr
+
+  case class AWord(value: String) extends Expr
+
+  case class ADocTitle(value: APhrase) extends Expr
+
+  case class AAuthor(value: AWord, lastname:AWord, email:AQEmail) extends Expr
+
+  case class AAuthorVersion(value: Expr) extends Expr
+
+  case class AAuthorVersion2(value1: String, value2: Option[AVersion]) extends Expr
+
+  case class AVersion(value: String) extends Expr
+
+  case class AParagraph(value: String) extends Expr
+
+  case class ALitParagraph(value: Expr) extends Expr
+
+  case class ALeadParagraph(value: Expr) extends Expr
+
+  case class AAdParagraph(s: String, value: Expr) extends Expr
+
+  case class AGenParagraph(value: Expr) extends Expr
+
+  case class APreamble(value: Seq[Expr]) extends Expr
+
+  case class ABody(preamble: APreamble, sections: Seq[Expr]) extends Expr
+
+  case class ASection(header: ASecH, paras: Expr) extends Expr
+
+  case class ASecH(value: Expr) extends Expr
+
+  case class S5H(value: Expr) extends Expr
+
+  case class S4H(value: Expr) extends Expr
+
+  case class S3H(value: Expr) extends Expr
+
+  case class S2H(value: Expr) extends Expr
+
+  case class AQEmail(lvalue: AEmailL, rvalue: AEmailD) extends Expr
+
+  case class AEmailL(value: AWord) extends Expr
+
+  case class AEmailD(value: AWord, rvalue: AWord) extends Expr
+
+}
+
+/**
+  * This parser reads simple calculator expressions and builds an AST
+  * for them, to be evaluated in a separate phase, after parsing is completed.
+  */
+class Calculator2(val input: ParserInput) extends Parser {
+
+  import Calculator2._
+
+  //  def InputLine = rule { WhiteSpace ~ adocument ~ EOI  }
+  def WhiteSpace: Rule0 = rule {
+    zeroOrMore(WhiteSpaceChar)
+  }
+  def NewLine: Rule0 = rule {
+    anyOf("\n\r")
+  }
+
+  def Phrase: Rule1[APhrase] = rule {
+    oneOrMore(QWord) ~ WhiteSpace ~> (s => APhrase(s))
+  }
+
+  def QWord: Rule1[AWord] = rule {
+    capture(oneOrMore(CharPredicate.Alpha)) ~> AWord
+  }
+
+
+  def emaillocalpart: Rule1[AEmailL] = rule {
+    QWord ~> AEmailL
+  }
+
+  def emaildomain: Rule1[AEmailD] = rule {
+    (QWord ~ QWord) ~> AEmailD
+  }
+
+  def qemail: Rule1[AQEmail]  = rule {
+    (emaillocalpart ~ ch('@') ~ emaildomain) ~> AQEmail
+  }
+
+  //
+  ////  def Document: Rule1[Expr] = rule { Header}
+  //def adocument:Rule1[ADocument] = rule { (aheader ~ body) ~> ADocument}
+  //
+  // def aheader:Rule1[AHeader] = rule { adoctitle ~ optional( NewLine ~ authorAndVersion)  ~ zeroOrMore(NewLine) ~> AHeader}
+  //
+  // def authorAndVersion:Rule1[AAuthorVersion] = rule { authorAndVersion2  ~> AAuthorVersion
+  //
+  // }
+  //
+  // def body:Rule1[ABody] = rule { preamble ~ zeroOrMore(section)  ~> ABody
+  //
+  // }
+  //
+  // def preamble:Rule1[APreamble] = rule {zeroOrMore(paragraph)  ~> APreamble}
+  //
+  //
+  // def section:Rule1[ASection] = rule { sectionHeader ~ paragraph  ~> ASection
+  //
+  // }
+  //
+  // def sectionHeader:Rule1[ASecH] = rule {  (s5Header | s4Header | s3Header | s2Header) ~> ASecH
+  //
+  // }
+  //
+  // def s5Header = rule { "===== " ~ WhiteSpace ~ Phrase   ~> S5H }
+  // def s4Header = rule { "==== " ~ WhiteSpace ~ Phrase   ~> S4H }
+  // def s3Header = rule { "=== " ~ WhiteSpace ~ Phrase   ~> S3H }
+  // def s2Header = rule { "== " ~ WhiteSpace ~ Phrase   ~> S2H }
+  //
+  //
+  //def paragraph:Rule1[AGenParagraph] = rule {  (literalparagraph | admonitonparagraph | leadparagraph |normalparagraph) ~> AGenParagraph
+  //
+  //}
+  //
+  // def normalparagraph:Rule1[AParagraph] = rule { capture(oneOrMore(!NewLine ~ ANY)) ~ NewLine ~> AParagraph
+  //
+  // }
+  // def literalparagraph:Rule1[ALitParagraph] = rule { " " ~ normalparagraph  ~> ALitParagraph
+  //
+  // }
+  // def leadparagraph:Rule1[ALeadParagraph] = rule { "[.lead]" ~ NewLine ~ normalparagraph ~> ALeadParagraph
+  //
+  // }
+  // def admonitonparagraph:Rule1[AAdParagraph] = rule { capture("NOTE: " | "TIP: " | "IMPORTANT: " | "WARNING: ") ~ normalparagraph  ~> AAdParagraph
+  //
+  // }
+  //
+  // def authorAndVersion2:Rule1[AAuthorVersion2] = rule { (author ~ optional( version)) ~> AAuthorVersion2
+  //
+  // }
+
+   def author: Rule1[AAuthor] = rule {
+     (QWord ~ WhiteSpace ~ QWord ~ ch('<') ~ qemail ~ ch('>')) ~> AAuthor
+   }
+
+
+
+  def version: Rule1[AVersion] = rule {
+    NewLine ~
+      capture(ch('v') ~ oneOrMore(CharPredicate.Digit)) ~ WhiteSpace ~> AVersion
+  }
+
+  def adoctitle = rule {
+    '=' ~ WhiteSpace ~ Phrase ~> (s => ADocTitle(s))
+  }
+
+
+
+  def EmailWord = rule {
+    oneOrMore(CharPredicate.Alpha ~ CharPredicate.Digit)
+  }
+}
