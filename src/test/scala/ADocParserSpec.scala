@@ -2,7 +2,6 @@
   * Created by eperson on 2016-09-20.
   */
 
-  package scalaparser
 
   import java.io.{File, FileInputStream}
   import java.nio.ByteBuffer
@@ -26,6 +25,7 @@
 
     def checkDir(path: String, blackList: String*): String => Boolean = { exampleName =>
       def checkFile(path: String): Int = {
+        println("Checking " + path)
         val inputStream = new FileInputStream(path)
         val utf8Bytes = Array.ofDim[Byte](inputStream.available)
         inputStream.read(utf8Bytes)
@@ -36,6 +36,7 @@
         parser.InputLine.run().failed foreach {
           case error: ParseError => fail(s"Error in file `$path`:\n" + error.format(parser, formatter))
           case error => fail(s"Exception in file `$path`:\n$error")
+
         }
         parser.input.length
       }
@@ -48,7 +49,7 @@
       val fileChars =
         for {
           fileName <- listFiles(new File(if (path startsWith "~") System.getProperty("user.home") + path.tail else path))
-          if fileName endsWith ".scala"
+          if fileName endsWith ".txt"
           if !blackList.exists(fileName.contains)
         } yield checkFile(fileName)
       val totalChars = fileChars.sum / 1000
