@@ -9,7 +9,9 @@ trait L1_DocHeader { this: Parser with L0_Basics =>
 
   def aheader = rule { adoctitle ~ optional( authorAndVersion)  ~ zeroOrMore(NewLine)}
 
-  def adoctitle = rule { '=' ~ WS ~ textline  }
+  def adoctitle = rule { twolinedoctitle | onelinedoctitle  }
+  def onelinedoctitle = rule { '=' ~ WS ~ textline  }
+  def twolinedoctitle = rule { !ch('=') ~ textline ~ "====" ~ ch('=').* ~ LineEnd  }
 
   def authorAndVersion = rule { authorAndVersion2  }
 

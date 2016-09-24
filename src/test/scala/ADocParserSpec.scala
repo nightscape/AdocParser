@@ -16,7 +16,8 @@
 
     "The ADocParser should successfully parse the following project sources" >> {
 
-      "testadoc" in checkDir("C:\\Users\\eperson\\IdeaProjects\\NihParser\\src\\main\\resources")
+      "testadoc" in checkDir("C:\\Users\\Daniel\\Google Drive\\NihParser\\src\\main\\resources")
+      //"testadoc" in checkDir("C:\\Users\\eperson\\IdeaProjects\\NihParser\\src\\main\\resources")
 
     }
 

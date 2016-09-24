@@ -11,7 +11,7 @@ trait L1_Paragraph { this: Parser
 
   }
 
-  def normalparagraph = rule { !sectionHeader ~ oneOrMore(NotNewline ~ ANY)
+  def normalparagraph = rule {  oneOrMore(NotEndChar ~ ANY)
 
   }
   def literalparagraph = rule { " " ~ normalparagraph
@@ -20,7 +20,7 @@ trait L1_Paragraph { this: Parser
   def leadparagraph = rule { "[.lead]" ~ NewLine ~ normalparagraph
 
   }
-  def admonitonparagraph = rule { "NOTE: " | "TIP: " | "IMPORTANT: " | "WARNING: " ~ normalparagraph
+  def admonitonparagraph = rule { ("NOTE: " | "TIP: " | "IMPORTANT: " | "WARNING: ") ~ normalparagraph
 
   }
 }

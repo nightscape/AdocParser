@@ -8,12 +8,10 @@ trait L5_Body {  this: Parser with L0_Basics
   with L2_Section
   =>
 
-  def body = rule { preamble  ~
-            zeroOrMore(NewLine)~
-            zeroOrMore(section)
+  def body:Rule0 = rule { zeroOrMore(sectionHeader  | paragraph | NewLine   ) ~EOI
   }
 
-  def preamble = rule {zeroOrMore(paragraph).separatedBy(oneOrMore(NewLine))  }
+  def preamble:Rule0 = rule {zeroOrMore(paragraph).separatedBy(oneOrMore(NewLine))  }
 
 
 }
